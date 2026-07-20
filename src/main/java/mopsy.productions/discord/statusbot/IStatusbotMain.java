@@ -5,9 +5,18 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import okhttp3.OkHttpClient;
 import org.simpleyaml.configuration.file.YamlFile;
 
+import java.io.File;
 import java.time.Duration;
 
 public interface IStatusbotMain {
+    /**
+     * The file used as the embed's thumbnail image (e.g. the server's server-icon.png).
+     * Return null to disable the thumbnail.
+     */
+    default File getServerIconFile() {
+        return null;
+    }
+
     default void initAll() {
         LogUtils.init(this);
         ConfigManager.init(this);
