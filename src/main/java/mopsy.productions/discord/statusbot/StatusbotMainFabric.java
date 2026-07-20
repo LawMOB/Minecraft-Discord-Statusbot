@@ -103,13 +103,34 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         EmbedManager.regVarSupplier("amount-of-players",(statusbotMain -> ((StatusbotMainFabric)statusbotMain).online?String.valueOf(((StatusbotMainFabric)statusbotMain).server.getPlayerCount()):"0"));
         EmbedManager.regVarSupplier("player-list",(statusbotMain -> ((StatusbotMainFabric)statusbotMain).online?String.join(ConfigManager.getStr("embed_player_separator_text"),MakeStringList(((StatusbotMainFabric)statusbotMain).server.getPlayerNames())):""));
         EmbedManager.regVarSupplier("max-players",(statusbotMain -> String.valueOf(((StatusbotMainFabric)statusbotMain).server.getMaxPlayers())));
-        EmbedManager.regVarSupplier("motd",(statusbotMain -> String.valueOf(((StatusbotMainFabric)statusbotMain).server.getMotd())));
-        EmbedManager.regVarSupplier("server-name",(statusbotMain -> ConfigManager.getStr("server_name")));
+        
+        EmbedManager.regVarSupplier("server-name",(statusbotMain -> {
+            StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
+            return main.online && main.server != null ? main.server.getMotd() : ConfigManager.getStr("server_name");
+        }));
+        
+        EmbedManager.regVarSupplier("server-version", (statusbotMain) -> {
+            StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
+            if (main.online && main.server != null) {
+                String mcVersion = main.server.getVersion();
+                String modName = main.server.getServerModName();
+                modName = modName.substring(0, 1).toUpperCase() + modName.substring(1);
+                return "Minecraft " + mcVersion + " " + modName;
+            }
+            return "?";
+        });
+
+        EmbedManager.regVarSupplier("motd",(statusbotMain -> {
+            StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
+            return main.online && main.server != null ? main.server.getMotd() : "?";
+        }));
         EmbedManager.regVarSupplier("server-ip",(statusbotMain -> IpLookup.getServerIp()));
+        
         EmbedManager.regVarSupplier("server-port",(statusbotMain) -> {
             StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
             return main.online && main.server != null ? String.valueOf(main.server.getPort()) : "?";
         });
+        
         EmbedManager.regVarSupplier("uptime",(statusbotMain) -> {
             StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
             if (!main.online || main.startTimeMillis == 0)
