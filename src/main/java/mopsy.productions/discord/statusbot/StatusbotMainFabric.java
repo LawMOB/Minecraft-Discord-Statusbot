@@ -54,7 +54,7 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
                         "",
                         "Note: the embed also automatically shows a colored side-bar (green/red) and a 'today at HH:MM' timestamp",
                         "for whether the server is online, and a thumbnail image if a 'server-icon.png' file exists in the server's root folder."));
-        ConfigManager.addConfigKey(configuration,"embed_player_separator_text",", ",
+        ConfigManager.addConfigKey(configuration,"embed_player_separator_text","` `", ...
                 String.join(
                         "\n",
                         "",
