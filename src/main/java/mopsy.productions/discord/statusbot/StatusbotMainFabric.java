@@ -112,7 +112,7 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         EmbedManager.regVarSupplier("server-version", (statusbotMain) -> {
             StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
             if (main.online && main.server != null) {
-                String mcVersion = main.server.getVersion();
+                String mcVersion = main.server.getServerVersion();
                 String modName = main.server.getServerModName();
                 modName = modName.substring(0, 1).toUpperCase() + modName.substring(1);
                 return "Minecraft " + mcVersion + " " + modName;
