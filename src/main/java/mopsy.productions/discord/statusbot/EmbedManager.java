@@ -60,36 +60,41 @@ public class EmbedManager {
         });
     }
 
-    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
-    EmbedBuilder builder = new EmbedBuilder()
-            .setTitle(title)
-            .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
-            .setTimestamp(Instant.now());
+        private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+        EmbedBuilder builder = new EmbedBuilder()
+                .setTitle(title)
+                .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
+                .setTimestamp(Instant.now());
 
-    if (iconFile != null && iconFile.exists() && iconFile.isFile())
-        builder.setThumbnail("attachment://server-icon.png");
+        if (iconFile != null && iconFile.exists() && iconFile.isFile())
+            builder.setThumbnail("attachment://server-icon.png");
 
-    if (online) {
-        String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
-        String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
-        String playerList = parseEmbedText(statusbotMain, "$player-list$");
+        if (online) {
+            String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
+            String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
+            String playerList = parseEmbedText(statusbotMain, "$player-list$");
 
-        if (playerList == null || playerList.trim().isEmpty()) {
-            playerList = "*No players online*";
+            String ipText = parseEmbedText(statusbotMain, "$server-ip$:$server-port$");
+            String versionText = parseEmbedText(statusbotMain, "$server-version$");
+
+            builder.setDescription("**IP:** `" + ipText + "`\n**Version:** " + versionText);
+
+            if (playerList == null || playerList.trim().isEmpty()) {
+                playerList = "*No players online*";
+            } else {
+                playerList = "`" + playerList + "`"; 
+            }
+
+            builder.addField("Status", playersCount, true);
+            builder.addField("Uptime", uptimeText, true);
+            
+            builder.addField("Online Players", playerList, false);
         } else {
-            playerList = "`" + playerList + "`"; 
+            builder.setDescription("Server is currently offline");
         }
 
-        builder.addField("Status", playersCount, true);
-        builder.addField("Uptime", uptimeText, true);
-        
-        builder.addField("Online Players", playerList, false);
-    } else {
-        builder.setDescription("Server is currently offline");
+        return builder.build();
     }
-
-    return builder.build();
-}
 
     private static FileUpload buildIconFileUpload(File iconFile){
         if (iconFile == null || !iconFile.exists() || !iconFile.isFile())
