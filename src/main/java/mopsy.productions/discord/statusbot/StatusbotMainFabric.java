@@ -29,7 +29,9 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         ConfigManager.addConfigKey(configuration,"embed_content",String.join(
                         "\n",
                         "status: $server-status$",
-                        "$amount-of-players$/$max-players$ players online:",
+                        "$server-name$",
+                        "ip: $server-ip$",
+                        "$amount-of-players$/$max-players$ max",
                         "$player-list$"),
                 String.join(
                         "\n",
@@ -37,6 +39,8 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
                         "This is the text displayed below the title of embeds",
                         "Possible placeholders are:",
                         "$server-status$ A red (offline) or green (online) circle telling whether the server is online",
+                        "$server-name$ The server name, taken from 'server_name' below",
+                        "$server-ip$ The server IP/address, taken from 'server_ip' below",
                         "$amount-of-players$ The number of players currently online on the server",
                         "$max-players$ The maximum number of players that can play on the server",
                         "$motd$ The message of the day of the server",
@@ -48,6 +52,17 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
                         "Enter the character(s) displayed between every player name in embeds.",
                         "Changing this to '---' would for example result in:",
                         "playername1---playername2---playername3---playername4"));
+        ConfigManager.addConfigKey(configuration,"server_name","My Server",
+                String.join(
+                        "\n",
+                        "",
+                        "The name of the server, shown in embeds via the $server-name$ placeholder."));
+        ConfigManager.addConfigKey(configuration,"server_ip","play.example.com",
+                String.join(
+                        "\n",
+                        "",
+                        "The IP/address players use to connect, shown in embeds via the $server-ip$ placeholder.",
+                        "This is entered manually since the server can't reliably detect its own public address."));
     }
 
     @Override
@@ -62,6 +77,8 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         EmbedManager.regVarSupplier("player-list",(statusbotMain -> ((StatusbotMainFabric)statusbotMain).online?String.join(ConfigManager.getStr("embed_player_separator_text"),MakeStringList(((StatusbotMainFabric)statusbotMain).server.getPlayerNames())):""));
         EmbedManager.regVarSupplier("max-players",(statusbotMain -> String.valueOf(((StatusbotMainFabric)statusbotMain).server.getMaxPlayers())));
         EmbedManager.regVarSupplier("motd",(statusbotMain -> String.valueOf(((StatusbotMainFabric)statusbotMain).server.getMotd())));
+        EmbedManager.regVarSupplier("server-name",(statusbotMain -> ConfigManager.getStr("server_name")));
+        EmbedManager.regVarSupplier("server-ip",(statusbotMain -> ConfigManager.getStr("server_ip")));
     }
 
     @Override
