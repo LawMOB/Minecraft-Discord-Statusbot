@@ -108,7 +108,7 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         EmbedManager.regVarSupplier("server-ip",(statusbotMain -> IpLookup.getServerIp()));
         EmbedManager.regVarSupplier("server-port",(statusbotMain) -> {
             StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
-            return main.online && main.server != null ? String.valueOf(main.server.getServerPort()) : "?";
+            return main.online && main.server != null ? String.valueOf(main.server.getPort()) : "?";
         });
         EmbedManager.regVarSupplier("uptime",(statusbotMain) -> {
             StatusbotMainFabric main = (StatusbotMainFabric) statusbotMain;
