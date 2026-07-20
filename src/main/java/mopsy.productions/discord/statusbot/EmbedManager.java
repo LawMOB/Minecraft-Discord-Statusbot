@@ -45,7 +45,7 @@ public class EmbedManager {
         String description = parseEmbedText(statusbotMain,ConfigManager.getStr("embed_content"));
         boolean online = onlineStatusSupplier.apply(statusbotMain);
         File iconFile = statusbotMain.getServerIconFile();
-        MessageEmbed embed = generateEmbed(title, description, online, iconFile);
+        MessageEmbed embed = generateEmbed(title, description, online, iconFile, statusbotMain);
         FileUpload fileUpload = buildIconFileUpload(iconFile);
 
         MessageCreateAction action = messageChannel.sendMessageEmbeds(embed);
@@ -60,16 +60,36 @@ public class EmbedManager {
         });
     }
 
-    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile){
-        EmbedBuilder builder = new EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
-                .setTimestamp(Instant.now());
-        if (iconFile != null && iconFile.exists() && iconFile.isFile())
-            builder.setThumbnail("attachment://server-icon.png");
-        return builder.build();
+    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+    EmbedBuilder builder = new EmbedBuilder()
+            .setTitle(title)
+            .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
+            .setTimestamp(Instant.now());
+
+    if (iconFile != null && iconFile.exists() && iconFile.isFile())
+        builder.setThumbnail("attachment://server-icon.png");
+
+    if (online) {
+        String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
+        String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
+        String playerList = parseEmbedText(statusbotMain, "$player-list$");
+
+        if (playerList == null || playerList.trim().isEmpty()) {
+            playerList = "*No players online*";
+        } else {
+            playerList = "`" + playerList + "`"; 
+        }
+
+        builder.addField("Status", playersCount, true);
+        builder.addField("Uptime", uptimeText, true);
+        
+        builder.addField("Online Players", playerList, false);
+    } else {
+        builder.setDescription("Server is currently offline");
     }
+
+    return builder.build();
+}
 
     private static FileUpload buildIconFileUpload(File iconFile){
         if (iconFile == null || !iconFile.exists() || !iconFile.isFile())
@@ -91,11 +111,11 @@ public class EmbedManager {
             lastEmbedTitle = title;
             lastEmbedDescription = description;
             lastOnlineState = online;
-            updateAllEmbeds(title, description, online, statusbotMain.getServerIconFile());
+            updateAllEmbeds(title, description, online, statusbotMain.getServerIconFile(), statusbotMain);
         }
     }
-    public static void updateAllEmbeds(String title, String description, boolean online, File iconFile) {
-        MessageEmbed embed = generateEmbed(title, description, online, iconFile);
+        public static void updateAllEmbeds(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain) {
+        MessageEmbed embed = generateEmbed(title, description, online, iconFile, statusbotMain);
         FileUpload fileUpload = buildIconFileUpload(iconFile);
         for (int i = sentEmbeds.size()-1; i >= 0; i--) {
             SentEmbedData embedData = sentEmbeds.get(i);
