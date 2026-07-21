@@ -60,14 +60,17 @@ public class EmbedManager {
         });
     }
 
-    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+        private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+        String motdTitle = parseEmbedText(statusbotMain, "$motd$");
+        
+        if (motdTitle == null || motdTitle.trim().isEmpty() || motdTitle.equals("?")) {
+            motdTitle = title; 
+        }
+
         EmbedBuilder builder = new EmbedBuilder()
-                .setTitle(title)
+                .setTitle(motdTitle)
                 .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
                 .setTimestamp(Instant.now());
-
-        if (iconFile != null && iconFile.exists() && iconFile.isFile())
-            builder.setThumbnail("attachment://server-icon.png");
 
         if (online) {
             String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
@@ -77,6 +80,8 @@ public class EmbedManager {
             String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
             String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
             String playerList = parseEmbedText(statusbotMain, "$player-list$");
+
+            builder.setThumbnail("https://api.mcsrvstat.us/icon/" + ipText);
 
             builder.setDescription(statusLine + "\n\n**IP:** `" + ipText + "`\n**Version:** " + versionText);
 
