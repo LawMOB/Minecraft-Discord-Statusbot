@@ -72,9 +72,11 @@ public class EmbedManager {
                 .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
                 .setTimestamp(Instant.now());
 
-        if (online) {
-            String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
+        builder.setThumbnail("attachment://server-icon.png");
 
+        String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
+
+        if (online) {
             String ip = parseEmbedText(statusbotMain, "$server-ip$");
             String port = parseEmbedText(statusbotMain, "$server-port$");
             String versionText = parseEmbedText(statusbotMain, "$server-version$");
@@ -85,12 +87,6 @@ public class EmbedManager {
             String displayAddress = (port == null || port.isBlank() || port.equals("?") || port.equals("25565"))
                     ? ip
                     : ip + ":" + port;
-
-            if (iconFile != null && iconFile.exists() && iconFile.isFile()) {
-                builder.setThumbnail("attachment://server-icon.png");
-            } else {
-                setThumbnailIfValid(builder, ip, port);
-            }
 
             builder.setDescription(statusLine + "\n\n**IP:** `" + displayAddress + "`\n**Version:** " + versionText);
 
@@ -104,41 +100,22 @@ public class EmbedManager {
             builder.addField("Uptime", uptimeText, true);
             builder.addField("Online Players", playerList, false);
         } else {
-            String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
             builder.setDescription(statusLine);
         }
 
         return builder.build();
     }
 
-    private static void setThumbnailIfValid(EmbedBuilder builder, String ip, String port) {
-        if (ip == null || ip.isBlank()
-                || ip.contains("detecting")
-                || ip.startsWith("192.168.")
-                || ip.startsWith("10.")
-                || ip.equals("127.0.0.1")
-                || ip.equalsIgnoreCase("localhost")) {
-            return;
-        }
-
-        String address = ip;
-        if (port != null && !port.isBlank() && !port.equals("?") && !port.equals("25565")) {
-            address = ip + ":" + port;
-        }
-
-        builder.setThumbnail("https://api.mcsrvstat.us/icon/" + address);
-    }
-
     private static FileUpload buildIconFileUpload(File iconFile){
-        if (iconFile == null || !iconFile.exists() || !iconFile.isFile())
-            return null;
-        try {
-            byte[] data = Files.readAllBytes(iconFile.toPath());
-            return FileUpload.fromData(data, "server-icon.png");
-        } catch (IOException e) {
-            LogUtils.log("Could not read the server icon file at " + iconFile.getAbsolutePath() + ": " + e.getMessage(), true);
-            return null;
+        if (iconFile != null && iconFile.exists() && iconFile.isFile()) {
+            try {
+                byte[] data = Files.readAllBytes(iconFile.toPath());
+                return FileUpload.fromData(data, "server-icon.png");
+            } catch (IOException e) {
+                LogUtils.log("Could not read the server icon file at " + iconFile.getAbsolutePath() + ": " + e.getMessage(), true);
+            }
         }
+        return FileUpload.fromData(DefaultServerIcon.getBytes(), "server-icon.png");
     }
 
     public static void tryUpdateAllEmbeds(IStatusbotMain statusbotMain){
