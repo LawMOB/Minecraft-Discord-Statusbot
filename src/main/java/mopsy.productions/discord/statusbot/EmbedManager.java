@@ -60,7 +60,7 @@ public class EmbedManager {
         });
     }
 
-        private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
         EmbedBuilder builder = new EmbedBuilder()
                 .setTitle(title)
                 .setColor(online ? COLOR_ONLINE : COLOR_OFFLINE)
@@ -70,14 +70,15 @@ public class EmbedManager {
             builder.setThumbnail("attachment://server-icon.png");
 
         if (online) {
+            String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
+            
+            String ipText = parseEmbedText(statusbotMain, "$server-ip$:$server-port$");
+            String versionText = parseEmbedText(statusbotMain, "$server-version$");
             String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
             String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
             String playerList = parseEmbedText(statusbotMain, "$player-list$");
 
-            String ipText = parseEmbedText(statusbotMain, "$server-ip$:$server-port$");
-            String versionText = parseEmbedText(statusbotMain, "$server-version$");
-
-            builder.setDescription("**IP:** `" + ipText + "`\n**Version:** " + versionText);
+            builder.setDescription(statusLine + "\n\n**IP:** `" + ipText + "`\n**Version:** " + versionText);
 
             if (playerList == null || playerList.trim().isEmpty()) {
                 playerList = "*No players online*";
@@ -87,10 +88,10 @@ public class EmbedManager {
 
             builder.addField("Status", playersCount, true);
             builder.addField("Uptime", uptimeText, true);
-            
             builder.addField("Online Players", playerList, false);
         } else {
-            builder.setDescription("Server is currently offline");
+            String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
+            builder.setDescription(statusLine);
         }
 
         return builder.build();
@@ -119,7 +120,8 @@ public class EmbedManager {
             updateAllEmbeds(title, description, online, statusbotMain.getServerIconFile(), statusbotMain);
         }
     }
-        public static void updateAllEmbeds(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain) {
+    
+    public static void updateAllEmbeds(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain) {
         MessageEmbed embed = generateEmbed(title, description, online, iconFile, statusbotMain);
         FileUpload fileUpload = buildIconFileUpload(iconFile);
         for (int i = sentEmbeds.size()-1; i >= 0; i--) {
