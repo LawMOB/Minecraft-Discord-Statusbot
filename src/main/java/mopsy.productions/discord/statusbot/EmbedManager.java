@@ -81,7 +81,7 @@ public class EmbedManager {
             String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
             String playerList = parseEmbedText(statusbotMain, "$player-list$");
 
-            builder.setThumbnail("https://api.mcsrvstat.us/icon/" + ipText);
+            builder.setThumbnail("https://mcscans.fi/api/servers/" + ipText + "/icon");
 
             builder.setDescription(statusLine + "\n\n**IP:** `" + ipText + "`\n**Version:** " + versionText);
 
