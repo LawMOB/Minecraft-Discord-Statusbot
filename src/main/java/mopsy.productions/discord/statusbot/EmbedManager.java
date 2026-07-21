@@ -86,7 +86,11 @@ public class EmbedManager {
                     ? ip
                     : ip + ":" + port;
 
-            setThumbnailIfValid(builder, ip, port);
+            if (iconFile != null && iconFile.exists() && iconFile.isFile()) {
+                builder.setThumbnail("attachment://server-icon.png");
+            } else {
+                setThumbnailIfValid(builder, ip, port);
+            }
 
             builder.setDescription(statusLine + "\n\n**IP:** `" + displayAddress + "`\n**Version:** " + versionText);
 
