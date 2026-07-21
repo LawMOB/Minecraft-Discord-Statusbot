@@ -60,11 +60,11 @@ public class EmbedManager {
         });
     }
 
-        private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
+    private static MessageEmbed generateEmbed(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain){
         String motdTitle = parseEmbedText(statusbotMain, "$motd$");
-        
+
         if (motdTitle == null || motdTitle.trim().isEmpty() || motdTitle.equals("?")) {
-            motdTitle = title; 
+            motdTitle = title;
         }
 
         EmbedBuilder builder = new EmbedBuilder()
@@ -74,21 +74,26 @@ public class EmbedManager {
 
         if (online) {
             String statusLine = parseEmbedText(statusbotMain, "$server-status$ **$server-status-text$**");
-            
-            String ipText = parseEmbedText(statusbotMain, "$server-ip$:$server-port$");
+
+            String ip = parseEmbedText(statusbotMain, "$server-ip$");
+            String port = parseEmbedText(statusbotMain, "$server-port$");
             String versionText = parseEmbedText(statusbotMain, "$server-version$");
             String playersCount = parseEmbedText(statusbotMain, "$amount-of-players$ / $max-players$ Players");
             String uptimeText = parseEmbedText(statusbotMain, "$uptime$");
             String playerList = parseEmbedText(statusbotMain, "$player-list$");
 
-            builder.setThumbnail("https://mcscans.fi/api/servers/" + ipText + "/icon");
+            String displayAddress = (port == null || port.isBlank() || port.equals("?") || port.equals("25565"))
+                    ? ip
+                    : ip + ":" + port;
 
-            builder.setDescription(statusLine + "\n\n**IP:** `" + ipText + "`\n**Version:** " + versionText);
+            setThumbnailIfValid(builder, ip, port);
+
+            builder.setDescription(statusLine + "\n\n**IP:** `" + displayAddress + "`\n**Version:** " + versionText);
 
             if (playerList == null || playerList.trim().isEmpty()) {
                 playerList = "*No players online*";
             } else {
-                playerList = "`" + playerList + "`"; 
+                playerList = "`" + playerList + "`";
             }
 
             builder.addField("Status", playersCount, true);
@@ -100,6 +105,24 @@ public class EmbedManager {
         }
 
         return builder.build();
+    }
+
+    private static void setThumbnailIfValid(EmbedBuilder builder, String ip, String port) {
+        if (ip == null || ip.isBlank()
+                || ip.contains("detecting")
+                || ip.startsWith("192.168.")
+                || ip.startsWith("10.")
+                || ip.equals("127.0.0.1")
+                || ip.equalsIgnoreCase("localhost")) {
+            return;
+        }
+
+        String address = ip;
+        if (port != null && !port.isBlank() && !port.equals("?") && !port.equals("25565")) {
+            address = ip + ":" + port;
+        }
+
+        builder.setThumbnail("https://api.mcsrvstat.us/icon/" + address);
     }
 
     private static FileUpload buildIconFileUpload(File iconFile){
@@ -125,7 +148,7 @@ public class EmbedManager {
             updateAllEmbeds(title, description, online, statusbotMain.getServerIconFile(), statusbotMain);
         }
     }
-    
+
     public static void updateAllEmbeds(String title, String description, boolean online, File iconFile, IStatusbotMain statusbotMain) {
         MessageEmbed embed = generateEmbed(title, description, online, iconFile, statusbotMain);
         FileUpload fileUpload = buildIconFileUpload(iconFile);
