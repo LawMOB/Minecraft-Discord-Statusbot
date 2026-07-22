@@ -1,18 +1,19 @@
 package mopsy.productions.discord.statusbot;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import okhttp3.OkHttpClient;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.File;
 import java.time.Duration;
+import java.time.Instant;
 
 public interface IStatusbotMain {
-    /**
-     * The file used as the embed's thumbnail image (e.g. the server's server-icon.png).
-     * Return null to disable the thumbnail.
-     */
     default File getServerIconFile() {
         return null;
     }
@@ -131,27 +132,47 @@ public interface IStatusbotMain {
     default void sendPlayerEventMessage(String message, String playerName, boolean isJoin) {
         if (BotManager.jda == null) return;
 
-        net.dv8tion.jda.api.EmbedBuilder builder = new net.dv8tion.jda.api.EmbedBuilder();
-        builder.setAuthor(message, null, "https://mc-heads.net/avatar/" + playerName);
-        builder.setColor(isJoin ? 0x57F287 : 0xED4245); 
+        Thread thread = new Thread(() -> {
+            SkinUtils.HeadIcon headIcon = SkinUtils.fetchHeadIcon(playerName);
 
-        net.dv8tion.jda.api.entities.MessageEmbed embed = builder.build();
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.setAuthor(
+                    playerName,
+                    null,
+                    headIcon != null ? "attachment://" + headIcon.fileName : "https://mc-heads.net/avatar/" + playerName + "/100"
+            );
+            builder.setColor(isJoin ? 0x57F287 : 0xED4245);
+            builder.setDescription(message);
+            builder.setTimestamp(Instant.now());
 
-        if (ConfigManager.getBool("enable_text_channel_status_messages")) {
-            for (long id : BotManager.messageTextChannels) {
-                net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel = BotManager.jda.getTextChannelById(id);
-                if (channel != null)
-                    channel.sendMessageEmbeds(embed).queue();
+            MessageEmbed embed = builder.build();
+
+            if (ConfigManager.getBool("enable_text_channel_status_messages")) {
+                for (long id : BotManager.messageTextChannels) {
+                    TextChannel channel = BotManager.jda.getTextChannelById(id);
+                    if (channel != null) {
+                        MessageCreateAction action = channel.sendMessageEmbeds(embed);
+                        if (headIcon != null)
+                            action = action.addFiles(FileUpload.fromData(headIcon.bytes, headIcon.fileName));
+                        action.queue();
+                    }
+                }
             }
-        }
 
-        if (ConfigManager.getBool("enable_direct_message_status_messages")) {
-            for (UserChannelPair id : BotManager.messagePrivateChannels) {
-                net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel channel = BotManager.jda.getPrivateChannelById(id.channel);
-                if (channel != null)
-                    channel.sendMessageEmbeds(embed).queue();
+            if (ConfigManager.getBool("enable_direct_message_status_messages")) {
+                for (UserChannelPair id : BotManager.messagePrivateChannels) {
+                    PrivateChannel channel = BotManager.jda.getPrivateChannelById(id.channel);
+                    if (channel != null) {
+                        MessageCreateAction action = channel.sendMessageEmbeds(embed);
+                        if (headIcon != null)
+                            action = action.addFiles(FileUpload.fromData(headIcon.bytes, headIcon.fileName));
+                        action.queue();
+                    }
+                }
             }
-        }
+        }, "statusbot-player-event-" + playerName);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     default void updateEmbeds() {
