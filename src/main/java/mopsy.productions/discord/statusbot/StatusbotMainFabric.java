@@ -192,23 +192,25 @@ public class StatusbotMainFabric implements IStatusbotMain, ModInitializer {
         });
 
         ServerPlayConnectionEvents.JOIN.register((serverPlayNetworkHandler,packetSender,server)->{
-            String status = Parser.createStatusMessage(()->MakeStringListWith(server.getPlayerNames(),serverPlayNetworkHandler.getPlayer().getScoreboardName()),server.getPlayerNames().length+1);
+            String playerName = serverPlayNetworkHandler.getPlayer().getScoreboardName();
+            String status = Parser.createStatusMessage(()->MakeStringListWith(server.getPlayerNames(),playerName),server.getPlayerNames().length+1);
             String joinMessage = Parser.createJoinMessage(
-                    ()->MakeStringListWith(server.getPlayerNames(),serverPlayNetworkHandler.getPlayer().getScoreboardName()),
-                    serverPlayNetworkHandler.getPlayer().getScoreboardName(),
+                    ()->MakeStringListWith(server.getPlayerNames(),playerName),
+                    playerName,
                     server.getPlayerNames().length+1
             );
-            IStatusbotMain.super.onPlayerJoined(status, joinMessage);
+            IStatusbotMain.super.onPlayerJoined(status, joinMessage, playerName);
         });
 
         ServerPlayConnectionEvents.DISCONNECT.register((serverPlayNetworkHandler,server)->{
-            String status = Parser.createStatusMessage(()->MakeStringList(server.getPlayerNames(),serverPlayNetworkHandler.getPlayer().getScoreboardName()),server.getPlayerNames().length-1);
+            String playerName = serverPlayNetworkHandler.getPlayer().getScoreboardName();
+            String status = Parser.createStatusMessage(()->MakeStringList(server.getPlayerNames(),playerName),server.getPlayerNames().length-1);
             String leaveMessage = Parser.createLeaveMessage(
-                    ()->MakeStringList(server.getPlayerNames(),serverPlayNetworkHandler.getPlayer().getScoreboardName()),
-                    serverPlayNetworkHandler.getPlayer().getScoreboardName(),
+                    ()->MakeStringList(server.getPlayerNames(),playerName),
+                    playerName,
                     server.getPlayerNames().length-1
             );
-            IStatusbotMain.super.onPlayerLeft(status, leaveMessage);
+            IStatusbotMain.super.onPlayerLeft(status, leaveMessage, playerName);
         });
 
         ServerTickEvents.END_SERVER_TICK.register((server)->{
