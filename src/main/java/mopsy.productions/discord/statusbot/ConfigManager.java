@@ -109,7 +109,7 @@ public class ConfigManager {
                         "",
                         "Options are true/false",
                         "This will enable or disable the sending of the player join message in both server and private channels."));
-        addConfigKey(configuration,"join_message","Player $CPL$ joined the server",
+        addConfigKey(configuration,"join_message","Player `$CPL$` joined the server",
                 String.join(
                         "\n",
                         "",
@@ -124,7 +124,7 @@ public class ConfigManager {
                         "",
                         "Options are true/false",
                         "This will enable or disable the sending of the player leave message in both server and private channels."));
-        addConfigKey(configuration,"leave_message","Player $CPL$ left the server",
+        addConfigKey(configuration,"leave_message","Player `$CPL$` left the server",
                 String.join(
                         "\n",
                         "",
