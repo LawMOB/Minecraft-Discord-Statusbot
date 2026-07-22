@@ -102,7 +102,7 @@ public interface IStatusbotMain {
         }
     }
 
-    default void onPlayerJoined(String status, String joinMessage) {
+    default void onPlayerJoined(String status, String joinMessage, String playerName) {
         BotManager.regBot(
                 ConfigManager.configuration.getString("bot_token"),
                 status,
@@ -110,21 +110,46 @@ public interface IStatusbotMain {
         );
         if (BotManager.jda!=null) {
             if (ConfigManager.getBool("enable_server_join_messages")) {
-                sendMessage(joinMessage);
+                sendPlayerEventMessage(joinMessage, playerName, true);
             }
         }
     }
 
-    default void onPlayerLeft(String status, String leftMessage) {
+    default void onPlayerLeft(String status, String leftMessage, String playerName) {
         BotManager.regBot(
                 ConfigManager.configuration.getString("bot_token"),
                 status,
                 this
         );
-
         if(BotManager.jda!=null) {
             if (ConfigManager.getBool("enable_server_leave_messages")) {
-                sendMessage(leftMessage);
+                sendPlayerEventMessage(leftMessage, playerName, false);
+            }
+        }
+    }
+
+    default void sendPlayerEventMessage(String message, String playerName, boolean isJoin) {
+        if (BotManager.jda == null) return;
+
+        net.dv8tion.jda.api.EmbedBuilder builder = new net.dv8tion.jda.api.EmbedBuilder();
+        builder.setAuthor(message, null, "https://mc-heads.net/avatar/" + playerName);
+        builder.setColor(isJoin ? 0x57F287 : 0xED4245); 
+
+        net.dv8tion.jda.api.entities.MessageEmbed embed = builder.build();
+
+        if (ConfigManager.getBool("enable_text_channel_status_messages")) {
+            for (long id : BotManager.messageTextChannels) {
+                net.dv8tion.jda.api.entities.channel.concrete.TextChannel channel = BotManager.jda.getTextChannelById(id);
+                if (channel != null)
+                    channel.sendMessageEmbeds(embed).queue();
+            }
+        }
+
+        if (ConfigManager.getBool("enable_direct_message_status_messages")) {
+            for (UserChannelPair id : BotManager.messagePrivateChannels) {
+                net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel channel = BotManager.jda.getPrivateChannelById(id.channel);
+                if (channel != null)
+                    channel.sendMessageEmbeds(embed).queue();
             }
         }
     }
